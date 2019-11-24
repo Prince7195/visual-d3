@@ -1,6 +1,6 @@
-const { select, csv, scaleLinear, max, scaleBand, axisLeft, axisBottom, format } = d3;
+const { select, csv, scaleLinear, max, scalePoint, axisLeft, axisBottom, format } = d3;
 // scaleLinear used for quantitative scales
-// scaleBand used for ordinal scales
+// scalePoint used for ordinal scales
 
 const width = 1000;
 const height = 600;
@@ -45,10 +45,13 @@ const style = {
       fillColor: 'steelblue',
       fontWeight: 'bold'
     },
+    tick: {
+      stroke: '#c7c7c7'
+    }
   }
 };
 
-const svg = select('#bar-chart')
+const svg = select('#scatter-plot')
     .append('svg')
       .attr('width', width)
       .attr('height', height);
@@ -60,23 +63,30 @@ const render = data => {
      .attr('transform', `translate(${margins.left},${margins.top})`);
   const xScale = scaleLinear()
      .domain([0, max(data, xValue)])
-     .range([0, innerWidth]);
+     .range([0, innerWidth])
+     .nice();
 
-  const yScale = scaleBand()
+  const yScale = scalePoint()
      .domain(data.map(yValue))
      .range([0, innerHeight])
-     .padding(0.1);
+     .padding(1);
 
   const xScaleFormat = number => format('.3s')(number).replace('G', 'B');
   const xAxis = axisBottom(xScale)
    .tickFormat(xScaleFormat)
    .tickSize(-innerHeight);
 
+  const yAxis = axisLeft(yScale)
+   .tickSize(-innerWidth);
+
   const yAxisG = g.append('g')
-   .call(axisLeft(yScale))
+   .call(yAxis)
    .attr('font-size', style.y.axisValue.fontSize);
 
-  yAxisG.selectAll('.domain, .tick line').remove();
+  yAxisG.select('.domain').remove();
+
+  yAxisG.selectAll('.tick line')
+   .attr('stroke', style.y.tick.stroke);
 
   yAxisG.append('text')
    .text('countries')
@@ -105,11 +115,11 @@ const render = data => {
   const gRect = g.append('g')
      .attr('fill', style.fillColor);
 
-  gRect.selectAll('rect').data(data)
-     .enter().append('rect')
-     .attr('y', d => yScale(yValue(d)))
-     .attr('width', d => xScale(xValue(d)))
-     .attr('height', yScale.bandwidth());
+  gRect.selectAll('circle').data(data)
+     .enter().append('circle')
+     .attr('cy', d => yScale(yValue(d)))
+     .attr('cx', d => xScale(xValue(d)))
+     .attr('r', 15);
   
   g.append('text')
    .attr('y', -10)
