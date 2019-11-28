@@ -58,7 +58,7 @@ const settings = {
   }
 };
 
-const svg = select('#scatter-plot')
+const svg = select('#line-chart')
     .append('svg')
       .attr('width', width)
       .attr('height', height);
@@ -147,15 +147,9 @@ const render = data => {
 };
 
 // data rendering
-csv('/data/auto-mpg.csv').then(response => {
+csv('/data/temperature-in-san-francisco.csv').then(response => {
   response.forEach(res => {
-    res.mpg = +res.mpg
-    res.cylinders = +res.cylinders
-    res.displacement = +res.displacement
-    res.horsepower = +res.horsepower
-    res.weight = +res.weight
-    res.acceleration = +res.acceleration
-    res.year = +res.year
+    res.temperature = +res.temperature;
   });
   render(response);
 });
