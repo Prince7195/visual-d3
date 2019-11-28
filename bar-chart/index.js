@@ -58,20 +58,20 @@ const render = data => {
   const yValue = d => d.country;
   const g = svg.append('g')
      .attr('transform', `translate(${margins.left},${margins.top})`);
+
+  // X-Axis scale declaration
   const xScale = scaleLinear()
      .domain([0, max(data, xValue)])
      .range([0, innerWidth]);
 
+  // Y-Axis scale declaration
   const yScale = scaleBand()
      .domain(data.map(yValue))
      .range([0, innerHeight])
      .padding(0.1);
 
-  const xScaleFormat = number => format('.3s')(number).replace('G', 'B');
-  const xAxis = axisBottom(xScale)
-   .tickFormat(xScaleFormat)
-   .tickSize(-innerHeight);
-
+  
+  // Y-Axis implementation
   const yAxisG = g.append('g')
    .call(axisLeft(yScale))
    .attr('font-size', style.y.axisValue.fontSize);
@@ -79,11 +79,19 @@ const render = data => {
   yAxisG.selectAll('.domain, .tick line').remove();
 
   yAxisG.append('text')
-   .text('countries')
+   .text('Countries')
    .attr('fill', style.x.axisLabel.fillColor)
    .attr('font-weight', style.y.axisLabel.fontWeight)
    .attr('y', innerHeight/2)
    .attr('transform', `rotate(270 -110 ${innerHeight/2})`);
+
+  // formating the linear scale values
+  const xScaleFormat = number => format('.3s')(number).replace('G', 'B');
+
+  // X-Axis implementation
+  const xAxis = axisBottom(xScale)
+   .tickFormat(xScaleFormat)
+   .tickSize(-innerHeight);
 
   const xAxisG = g.append('g').call(xAxis)
    .attr('transform', `translate(0,${innerHeight})`)
@@ -102,6 +110,7 @@ const render = data => {
      .attr('y', 60);
      
 
+  // grouping the recangle bars
   const gRect = g.append('g')
      .attr('fill', style.fillColor);
 
@@ -111,6 +120,7 @@ const render = data => {
      .attr('width', d => xScale(xValue(d)))
      .attr('height', yScale.bandwidth());
   
+  // title for the chart
   g.append('text')
    .attr('y', -10)
    .attr('font-size', style.title.fontSize)
@@ -118,6 +128,7 @@ const render = data => {
    .text('Top 10 most populous countries');
 };
 
+// data rendering
 csv('/data/population.csv').then(response => {
   response.forEach(res => {
     res.population = +res.population * 1000

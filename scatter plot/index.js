@@ -61,21 +61,20 @@ const render = data => {
   const yValue = d => d.country;
   const g = svg.append('g')
      .attr('transform', `translate(${margins.left},${margins.top})`);
+
+  // X-Axis scale declaration
   const xScale = scaleLinear()
      .domain([0, max(data, xValue)])
      .range([0, innerWidth])
      .nice();
 
+  // Y-Axis scale declaration
   const yScale = scalePoint()
      .domain(data.map(yValue))
      .range([0, innerHeight])
      .padding(1);
 
-  const xScaleFormat = number => format('.3s')(number).replace('G', 'B');
-  const xAxis = axisBottom(xScale)
-   .tickFormat(xScaleFormat)
-   .tickSize(-innerHeight);
-
+  // Y-Axis implementation
   const yAxis = axisLeft(yScale)
    .tickSize(-innerWidth);
 
@@ -95,6 +94,14 @@ const render = data => {
    .attr('y', innerHeight/2)
    .attr('transform', `rotate(270 -110 ${innerHeight/2})`);
 
+  // formating the linear scale values
+  const xScaleFormat = number => format('.3s')(number).replace('G', 'B');
+
+  // X-Axis implementation
+  const xAxis = axisBottom(xScale)
+   .tickFormat(xScaleFormat)
+   .tickSize(-innerHeight);
+  
   const xAxisG = g.append('g').call(xAxis)
    .attr('transform', `translate(0,${innerHeight})`)
    .attr('font-size', style.x.axisValue.fontSize);
@@ -112,6 +119,7 @@ const render = data => {
      .attr('y', 60);
      
 
+  // grouping circles
   const gRect = g.append('g')
      .attr('fill', style.fillColor);
 
@@ -119,8 +127,9 @@ const render = data => {
      .enter().append('circle')
      .attr('cy', d => yScale(yValue(d)))
      .attr('cx', d => xScale(xValue(d)))
-     .attr('r', 15);
+     .attr('r', 12);
   
+  // title for the chart
   g.append('text')
    .attr('y', -10)
    .attr('font-size', style.title.fontSize)
@@ -128,6 +137,7 @@ const render = data => {
    .text('Top 10 most populous countries');
 };
 
+// data rendering
 csv('/data/population.csv').then(response => {
   response.forEach(res => {
     res.population = +res.population * 1000

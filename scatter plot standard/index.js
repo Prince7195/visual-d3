@@ -1,6 +1,5 @@
-const { select, csv, scaleLinear, max, scalePoint, axisLeft, axisBottom, format } = d3;
+const { select, csv, scaleLinear, extent, axisLeft, axisBottom, format } = d3;
 // scaleLinear used for quantitative scales
-// scalePoint used for ordinal scales
 
 const width = 1000;
 const height = 600;
@@ -12,8 +11,10 @@ const margins = {
 };
 const innerWidth = width - (margins.left + margins.right);
 const innerHeight = height - (margins.top + margins.bottom);
-const style = {
-  fillColor: 'steelblue',
+const circleRadius = 10;
+const title = "Cars Hourse power VS Weight";
+const settings = {
+  fillColor: 'red',
   fontFamily: 'sans-serif',
   title: {
     fontSize: '3em',
@@ -27,7 +28,7 @@ const style = {
     axisLabel: {
       fontSize: '1em',
       fontFamily: 'sans-serif',
-      fillColor: 'steelblue',
+      fillColor: 'red',
       fontWeight: 'bold'
     },
     tick: {
@@ -42,11 +43,17 @@ const style = {
     axisLabel: {
       fontSize: '1em',
       fontFamily: 'sans-serif',
-      fillColor: 'steelblue',
+      fillColor: 'red',
       fontWeight: 'bold'
     },
     tick: {
       stroke: '#c7c7c7'
+    }
+  },
+  circle: {
+    r: 10,
+    style: {
+      opacity: 0.3
     }
   }
 };
@@ -57,77 +64,89 @@ const svg = select('#scatter-plot')
       .attr('height', height);
 
 const render = data => {
-  const xValue = d => d.population;
-  const yValue = d => d.country;
+  const xValue = d => d.horsepower;
+  const xAxisLabel = 'Horsepower';
+  const yValue = d => d.weight;
+  const yAxisLabel = 'Weight';
   const g = svg.append('g')
      .attr('transform', `translate(${margins.left},${margins.top})`);
+  
+  // X-Axis scale declaration
   const xScale = scaleLinear()
-     .domain([0, max(data, xValue)])
+     .domain(extent(data, xValue))
      .range([0, innerWidth])
      .nice();
 
-  const yScale = scalePoint()
-     .domain(data.map(yValue))
+  // Y-Axis scale declaration
+  const yScale = scaleLinear()
+  .domain(extent(data, yValue))
      .range([0, innerHeight])
-     .padding(1);
+     .nice();  
 
-  const xScaleFormat = number => format('.3s')(number).replace('G', 'B');
-  const xAxis = axisBottom(xScale)
-   .tickFormat(xScaleFormat)
-   .tickSize(-innerHeight);
-
+  // Y-Axis implementation
   const yAxis = axisLeft(yScale)
-   .tickSize(-innerWidth);
+   .tickSize(-innerWidth)
+   .tickPadding(10);
 
-  const yAxisG = g.append('g')
+   const yAxisG = g.append('g')
    .call(yAxis)
-   .attr('font-size', style.y.axisValue.fontSize);
+   .attr('font-size', settings.y.axisValue.fontSize);
 
   yAxisG.select('.domain').remove();
 
   yAxisG.selectAll('.tick line')
-   .attr('stroke', style.y.tick.stroke);
+   .attr('stroke', settings.y.tick.stroke);
 
   yAxisG.append('text')
-   .text('countries')
-   .attr('fill', style.x.axisLabel.fillColor)
-   .attr('font-weight', style.y.axisLabel.fontWeight)
-   .attr('y', innerHeight/2)
-   .attr('transform', `rotate(270 -110 ${innerHeight/2})`);
+   .text(yAxisLabel)
+   .attr('fill', settings.y.axisLabel.fillColor)
+   .attr('font-weight', settings.y.axisLabel.fontWeight)
+   .attr('y', -90)
+   .attr('x', -innerHeight/2)
+   .attr('transform', `rotate(-90)`);
 
+  // X-Axis implementation
+  const xAxis = axisBottom(xScale)
+   .tickSize(-innerHeight)
+   .tickPadding(10);
+  
   const xAxisG = g.append('g').call(xAxis)
    .attr('transform', `translate(0,${innerHeight})`)
-   .attr('font-size', style.x.axisValue.fontSize);
+   .attr('font-size', settings.x.axisValue.fontSize);
    
   xAxisG.select('.domain').remove();
 
   xAxisG.selectAll('.tick line')
-     .attr('stroke', style.x.tick.stroke);
+     .attr('stroke', settings.x.tick.stroke);
 
   xAxisG.append('text')
-     .text('Population')
-     .attr('fill', style.x.axisLabel.fillColor)
-     .attr('font-weight', style.x.axisLabel.fontWeight)
+     .text(xAxisLabel)
+     .attr('fill', settings.x.axisLabel.fillColor)
+     .attr('font-weight', settings.x.axisLabel.fontWeight)
      .attr('x', innerWidth/2)
      .attr('y', 60);
      
 
-  const gRect = g.append('g')
-     .attr('fill', style.fillColor);
+  // grouping circles
+  const gCircle = g.append('g')
+     .attr('fill', settings.fillColor);
 
-  gRect.selectAll('circle').data(data)
+  gCircle.selectAll('circle').data(data)
      .enter().append('circle')
      .attr('cy', d => yScale(yValue(d)))
      .attr('cx', d => xScale(xValue(d)))
-     .attr('r', 15);
-  
+     .attr('r', settings.circle.r)
+     .attr('opacity', settings.circle.style.opacity);
+
+  // title for the chart
   g.append('text')
    .attr('y', -10)
-   .attr('font-size', style.title.fontSize)
-   .attr('font-family', style.title.fontFamily)
-   .text('Top 10 most populous countries');
+   .attr('font-size', settings.title.fontSize)
+   .attr('font-family', settings.title.fontFamily)
+   .text(title);
 };
 
+// data rendering
 csv('/data/auto-mpg.csv').then(response => {
   response.forEach(res => {
     res.mpg = +res.mpg
