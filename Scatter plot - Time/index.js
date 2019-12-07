@@ -1,4 +1,4 @@
-const { select, csv, scaleLinear, extent, axisLeft, axisBottom, scaleTime, line, curveBasis } = d3;
+const { select, csv, scaleLinear, extent, axisLeft, axisBottom, scaleTime } = d3;
 // scaleLinear used for quantitative scales
 
 const width = 1000;
@@ -14,7 +14,7 @@ const innerHeight = height - (margins.top + margins.bottom);
 const circleRadius = 10;
 const title = "Temperature in San francisco";
 const settings = {
-  fillColor: 'none',
+  fillColor: 'steelblue',
   fontFamily: 'sans-serif',
   title: {
     fontSize: '3em',
@@ -50,12 +50,10 @@ const settings = {
       stroke: '#c7c7c7'
     }
   },
-  line: {
+  circle: {
+    r: 5,
     style: {
-      stroke: 'steelblue',
-      strokeWidth: 3,
-      opacity: 1,
-      strokeLinejoin: 'round'
+      opacity: 1
     }
   }
 };
@@ -128,21 +126,17 @@ const render = data => {
      .attr('x', innerWidth/2)
      .attr('y', 60);
      
-  // line generator
-  const lineGenerator = line()
-  .x(d => xScale(xValue(d)))
-  .y(d => yScale(yValue(d)))
-  .curve(curveBasis);
 
-  // building path for line
-  const gLine = g.append('g')
-  
-  gLine.append('path')
-  .attr('stroke', settings.line.style.stroke)
-  .attr('stroke-width', settings.line.style.strokeWidth)
-  .attr('stroke-linejoin', settings.line.style.strokeLinejoin)
-  .attr('fill', settings.fillColor)
-  .attr('d', lineGenerator(data));
+  // grouping circles
+  const gCircle = g.append('g')
+     .attr('fill', settings.fillColor);
+
+  gCircle.selectAll('circle').data(data)
+     .enter().append('circle')
+     .attr('cy', d => yScale(yValue(d)))
+     .attr('cx', d => xScale(xValue(d)))
+     .attr('r', settings.circle.r)
+     .attr('opacity', settings.circle.style.opacity);
 
   // title for the chart
   g.append('text')

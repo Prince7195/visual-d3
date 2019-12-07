@@ -1,4 +1,4 @@
-const { select, csv, scaleLinear, extent, axisLeft, axisBottom, scaleTime, line, curveBasis } = d3;
+const { select, csv, scaleLinear, extent, axisLeft, axisBottom, scaleTime, area, curveBasis } = d3;
 // scaleLinear used for quantitative scales
 
 const width = 1000;
@@ -14,7 +14,7 @@ const innerHeight = height - (margins.top + margins.bottom);
 const circleRadius = 10;
 const title = "Temperature in San francisco";
 const settings = {
-  fillColor: 'none',
+  fillColor: 'steelblue',
   fontFamily: 'sans-serif',
   title: {
     fontSize: '3em',
@@ -76,8 +76,7 @@ const render = data => {
   // X-Axis scale declaration
   const xScale = scaleTime()
      .domain(extent(data, xValue))
-     .range([0, innerWidth])
-     .nice();
+     .range([0, innerWidth]);
 
   // Y-Axis scale declaration
   const yScale = scaleLinear()
@@ -128,21 +127,19 @@ const render = data => {
      .attr('x', innerWidth/2)
      .attr('y', 60);
      
-  // line generator
-  const lineGenerator = line()
+  // area generator
+  const areaGenerator = area()
   .x(d => xScale(xValue(d)))
-  .y(d => yScale(yValue(d)))
+  .y0(innerHeight)
+  .y1(d => yScale(yValue(d)))
   .curve(curveBasis);
 
   // building path for line
-  const gLine = g.append('g')
+  const gArea = g.append('g')
   
-  gLine.append('path')
-  .attr('stroke', settings.line.style.stroke)
-  .attr('stroke-width', settings.line.style.strokeWidth)
-  .attr('stroke-linejoin', settings.line.style.strokeLinejoin)
+  gArea.append('path')
   .attr('fill', settings.fillColor)
-  .attr('d', lineGenerator(data));
+  .attr('d', areaGenerator(data));
 
   // title for the chart
   g.append('text')
